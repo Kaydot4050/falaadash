@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "DataMart GH Developer Dashboard"
+version = "1.0.0"
+id = "artifacts/datamart-dashboard"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21974
+
+[services.development]
+run = "pnpm --filter @workspace/datamart-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/datamart-dashboard", "run", "build" ]
+publicDir = "artifacts/datamart-dashboard/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21974"
+BASE_PATH = "/"

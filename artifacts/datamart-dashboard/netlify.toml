@@ -1,0 +1,23 @@
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+[build.environment]
+  PNPM_FLAGS = "--no-frozen-lockfile"
+  NODE_VERSION = "22"
+  # IMPORTANT: Set all Environment Variables in the Netlify Dashboard UI.
+
+[functions]
+  directory = "../../artifacts/api-server/netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

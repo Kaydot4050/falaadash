@@ -1,0 +1,33 @@
+[build]
+  
+[build.environment]
+  PNPM_FLAGS = "--no-frozen-lockfile"
+  NODE_VERSION = "22"
+  # IMPORTANT: Set all Environment Variables in the Netlify Dashboard UI.
+
+[functions]
+  directory = "artifacts/api-server/netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/paystack/*"
+  to = "/.netlify/functions/api/paystack/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/datamart-webhook/*"
+  to = "/.netlify/functions/api/datamart-webhook/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,0 +1,1114 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: DataMart GH reseller API proxy
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: packages
+    description: Data package operations
+  - name: purchase
+    description: Purchase operations
+  - name: orders
+    description: Order status operations
+  - name: delivery
+    description: Delivery tracking
+  - name: account
+    description: Account operations
+  - name: withdrawals
+    description: Withdrawal operations
+  - name: stats
+    description: Usage statistics
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /packages:
+    get:
+      operationId: getDataPackages
+      tags: [packages]
+      summary: Get available data packages
+      description: Returns available data packages, optionally filtered by network
+      parameters:
+        - name: network
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [YELLO, TELECEL, AT_PREMIUM]
+      responses:
+        "200":
+          description: Data packages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataPackagesResponse"
+        "500":
+          description: Error fetching packages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /purchase:
+    post:
+      operationId: purchaseData
+      tags: [purchase]
+      summary: Purchase a data bundle
+      description: Purchase a data bundle for a phone number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseRequest"
+      responses:
+        "200":
+          description: Purchase successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseResponse"
+        "400":
+          description: Purchase failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /order/{reference}:
+    get:
+      operationId: getOrderStatus
+      tags: [orders]
+      summary: Get order status
+      description: Get the status of a specific order by reference
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderStatusResponse"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /delivery-tracker:
+    get:
+      operationId: getDeliveryTracker
+      tags: [delivery]
+      summary: Get live delivery tracker data
+      description: Returns real-time delivery status and scanner information
+      responses:
+        "200":
+          description: Delivery tracker data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryTrackerResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /balance:
+    get:
+      operationId: getBalance
+      tags: [account]
+      summary: Get wallet balance
+      description: Returns the current wallet balance and account info
+      responses:
+        "200":
+          description: Balance info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /transactions:
+    get:
+      operationId: getTransactions
+      tags: [account]
+      summary: Get transaction history
+      description: Returns paginated transaction history
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Transactions list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionsResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bulk-purchase:
+    post:
+      operationId: bulkPurchase
+      tags: [purchase]
+      summary: Bulk purchase data bundles
+      description: Send up to 50 orders in a single request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkPurchaseRequest"
+      responses:
+        "200":
+          description: Bulk purchase result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkPurchaseResponse"
+        "400":
+          description: Validation or balance error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkPurchaseErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /purchase-history:
+    get:
+      operationId: getPurchaseHistory
+      tags: [orders]
+      summary: Get purchase history
+      description: Returns detailed purchase records with balance tracking
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Purchase history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseHistoryResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /claim-referral-bonus:
+    post:
+      operationId: claimReferralBonus
+      tags: [account]
+      summary: Claim referral bonus
+      description: Claim any pending referral bonuses for your account
+      responses:
+        "200":
+          description: Referral bonus claimed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralBonusResponse"
+        "400":
+          description: No bonus to claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stats:
+    get:
+      operationId: getUsageStats
+      tags: [stats]
+      summary: Get usage statistics
+      description: Returns purchase totals, network breakdown, and spending summary
+      responses:
+        "200":
+          description: Usage stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageStatsResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /withdrawals:
+    post:
+      operationId: createWithdrawal
+      tags: [withdrawals]
+      summary: Create a withdrawal
+      description: Withdraw funds from the wallet to a mobile money number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalRequest"
+      responses:
+        "200":
+          description: Withdrawal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WithdrawalResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WithdrawalErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /withdrawals/{reference}:
+    get:
+      operationId: getWithdrawalStatus
+      tags: [withdrawals]
+      summary: Get withdrawal status
+      description: Check the status of a withdrawal by reference
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Withdrawal status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WithdrawalStatusResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    DataPackage:
+      type: object
+      properties:
+        capacity:
+          type: number
+        mb:
+          type: number
+        network:
+          type: string
+        price:
+          type: number
+      required:
+        - capacity
+        - mb
+        - network
+        - price
+
+    DataPackagesResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        pricingTier:
+          type: string
+        data:
+          type: object
+          properties:
+            YELLO:
+              type: array
+              items:
+                $ref: "#/components/schemas/DataPackage"
+            TELECEL:
+              type: array
+              items:
+                $ref: "#/components/schemas/DataPackage"
+            AT_PREMIUM:
+              type: array
+              items:
+                $ref: "#/components/schemas/DataPackage"
+      required:
+        - status
+        - data
+
+    PurchaseRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        network:
+          type: string
+          enum: [YELLO, TELECEL, AT_PREMIUM]
+        capacity:
+          type: string
+        gateway:
+          type: string
+          default: wallet
+      required:
+        - phoneNumber
+        - network
+        - capacity
+
+    PurchaseData:
+      type: object
+      properties:
+        purchaseId:
+          type: string
+        orderReference:
+          type: string
+        transactionReference:
+          type: string
+        network:
+          type: string
+        capacity:
+          type: number
+        price:
+          type: number
+        balanceBefore:
+          type: number
+        balanceAfter:
+          type: number
+        orderStatus:
+          type: string
+        processingMethod:
+          type: string
+      required:
+        - purchaseId
+        - orderReference
+        - network
+        - capacity
+        - price
+        - orderStatus
+
+    PurchaseResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/PurchaseData"
+      required:
+        - status
+        - message
+
+    PurchaseErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        currentBalance:
+          type: ["number", "null"]
+        requiredAmount:
+          type: ["number", "null"]
+      required:
+        - status
+        - message
+
+    OrderData:
+      type: object
+      properties:
+        orderId:
+          type: string
+        reference:
+          type: string
+        phoneNumber:
+          type: string
+        network:
+          type: string
+        capacity:
+          type: number
+        price:
+          type: number
+        orderStatus:
+          type: string
+        processingMethod:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - orderId
+        - reference
+        - phoneNumber
+        - network
+        - capacity
+        - price
+        - orderStatus
+
+    OrderStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/OrderData"
+      required:
+        - status
+
+    DeliveryStats:
+      type: object
+      properties:
+        checked:
+          type: number
+        delivered:
+          type: number
+        partial:
+          type: number
+        pending:
+          type: number
+        failed:
+          type: number
+      required:
+        - checked
+        - delivered
+        - pending
+
+    DeliveryOrderItem:
+      type: object
+      properties:
+        phone:
+          type: string
+        network:
+          type: string
+        capacity:
+          type: number
+        deliveryStatus:
+          type: string
+      required:
+        - phone
+        - network
+        - capacity
+        - deliveryStatus
+
+    DeliveryTrackerData:
+      type: object
+      properties:
+        message:
+          type: string
+        scanner:
+          type: object
+          properties:
+            active:
+              type: boolean
+            waiting:
+              type: boolean
+            waitSeconds:
+              type: number
+          required:
+            - active
+            - waiting
+        stats:
+          $ref: "#/components/schemas/DeliveryStats"
+        lastDelivered:
+          type: object
+          properties:
+            trackingId:
+              type: string
+            summary:
+              type: string
+          required:
+            - summary
+        checkingNow:
+          type: object
+          properties:
+            summary:
+              type: string
+          required:
+            - summary
+        yourOrders:
+          type: object
+          properties:
+            inCurrentBatch:
+              type: array
+              items:
+                $ref: "#/components/schemas/DeliveryOrderItem"
+            inLastDeliveredBatch:
+              type: array
+              items:
+                $ref: "#/components/schemas/DeliveryOrderItem"
+      required:
+        - message
+        - stats
+
+    DeliveryTrackerResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/DeliveryTrackerData"
+      required:
+        - status
+
+    BalanceData:
+      type: object
+      properties:
+        balance:
+          type: number
+        currency:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+          required:
+            - id
+            - name
+            - email
+        timestamp:
+          type: string
+      required:
+        - balance
+        - currency
+
+    BalanceResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/BalanceData"
+      required:
+        - status
+
+    Transaction:
+      type: object
+      properties:
+        type:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+        reference:
+          type: string
+        gateway:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - type
+        - amount
+        - status
+        - reference
+
+    TransactionsPagination:
+      type: object
+      properties:
+        currentPage:
+          type: number
+        totalPages:
+          type: number
+        totalItems:
+          type: number
+      required:
+        - currentPage
+        - totalPages
+        - totalItems
+
+    TransactionsData:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        pagination:
+          $ref: "#/components/schemas/TransactionsPagination"
+      required:
+        - transactions
+        - pagination
+
+    TransactionsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/TransactionsData"
+      required:
+        - status
+
+    BulkOrderItem:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        network:
+          type: string
+          enum: [YELLO, TELECEL, AT_PREMIUM]
+        capacity:
+          type: string
+        ref:
+          type: ["string", "null"]
+      required:
+        - phoneNumber
+        - network
+        - capacity
+
+    BulkPurchaseRequest:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/BulkOrderItem"
+          maxItems: 50
+      required:
+        - orders
+
+    BulkOrderResult:
+      type: object
+      properties:
+        index:
+          type: number
+        ref:
+          type: ["string", "null"]
+        phoneNumber:
+          type: string
+        network:
+          type: string
+        capacity:
+          type: string
+        price:
+          type: number
+        status:
+          type: string
+        purchaseId:
+          type: ["string", "null"]
+        orderReference:
+          type: ["string", "null"]
+        transactionReference:
+          type: ["string", "null"]
+        balanceBefore:
+          type: ["number", "null"]
+        balanceAfter:
+          type: ["number", "null"]
+        error:
+          type: ["string", "null"]
+      required:
+        - index
+        - phoneNumber
+        - network
+        - capacity
+        - price
+        - status
+
+    BulkSummary:
+      type: object
+      properties:
+        total:
+          type: number
+        successful:
+          type: number
+        failed:
+          type: number
+        invalid:
+          type: number
+        totalCharged:
+          type: number
+        remainingBalance:
+          type: number
+      required:
+        - total
+        - successful
+        - failed
+
+    BulkPurchaseData:
+      type: object
+      properties:
+        summary:
+          $ref: "#/components/schemas/BulkSummary"
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/BulkOrderResult"
+        validationErrors:
+          type: array
+          items:
+            type: string
+      required:
+        - summary
+        - results
+
+    BulkPurchaseResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/BulkPurchaseData"
+      required:
+        - status
+        - message
+
+    BulkPurchaseErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            totalCost:
+              type: number
+            walletBalance:
+              type: number
+            validOrders:
+              type: number
+            shortfall:
+              type: number
+      required:
+        - status
+        - message
+
+    PurchaseRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        phoneNumber:
+          type: string
+        network:
+          type: string
+        capacity:
+          type: number
+        price:
+          type: number
+        orderStatus:
+          type: string
+        orderReference:
+          type: string
+        balanceBefore:
+          type: ["number", "null"]
+        balanceAfter:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - phoneNumber
+        - network
+        - capacity
+        - price
+        - orderStatus
+        - orderReference
+        - createdAt
+
+    PurchaseHistoryData:
+      type: object
+      properties:
+        purchases:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurchaseRecord"
+        pagination:
+          $ref: "#/components/schemas/TransactionsPagination"
+      required:
+        - purchases
+        - pagination
+
+    PurchaseHistoryResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/PurchaseHistoryData"
+      required:
+        - status
+
+    ReferralBonusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            amountClaimed:
+              type: ["number", "null"]
+            newBalance:
+              type: ["number", "null"]
+      required:
+        - status
+        - message
+
+    NetworkStat:
+      type: object
+      properties:
+        network:
+          type: string
+        totalOrders:
+          type: number
+        totalGB:
+          type: number
+        totalSpent:
+          type: number
+      required:
+        - network
+        - totalOrders
+        - totalGB
+        - totalSpent
+
+    UsageStatsData:
+      type: object
+      properties:
+        totalOrders:
+          type: number
+        totalSpent:
+          type: number
+        totalGB:
+          type: number
+        successRate:
+          type: number
+        networkBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/NetworkStat"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurchaseRecord"
+      required:
+        - totalOrders
+        - totalSpent
+        - totalGB
+        - successRate
+
+    UsageStatsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/UsageStatsData"
+      required:
+        - status
+
+    WithdrawalRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        phoneNumber:
+          type: string
+        network:
+          type: string
+          enum: [MTN, TELECEL, AIRTELTIGO]
+        clientRef:
+          type: ["string", "null"]
+      required:
+        - amount
+        - phoneNumber
+        - network
+
+    WithdrawalData:
+      type: object
+      properties:
+        reference:
+          type: string
+        amount:
+          type: number
+        fee:
+          type: number
+        phoneNumber:
+          type: string
+        network:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - reference
+        - amount
+        - phoneNumber
+        - network
+        - status
+
+    WithdrawalResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/WithdrawalData"
+      required:
+        - status
+        - message
+
+    WithdrawalErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        code:
+          type: ["string", "null"]
+      required:
+        - status
+        - message
+
+    WithdrawalStatusData:
+      type: object
+      properties:
+        reference:
+          type: string
+        amount:
+          type: number
+        fee:
+          type: number
+        phoneNumber:
+          type: string
+        network:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - reference
+        - amount
+        - phoneNumber
+        - network
+        - status
+
+    WithdrawalStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/WithdrawalStatusData"
+      required:
+        - status
